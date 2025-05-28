@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>NEW HEAVEN TOKEN 投げ銭ページ</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 50px;
+      background: #f4f4f4;
+    }
+    input, button {
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌟 NEW HEAVEN TOKEN 投げ銭ページ</h1>
+  <p>MetaMaskを開いて、<strong>好きな数量</strong>の<br>
+    <strong>NEW HEAVEN TOKEN</strong> を送金できます。</p>
+
+  <p><strong>送金先スマートコントラクト:</strong><br>
+    0x001b215d0d7bca5B5F1fefFF431c2799B8656e08</p>
+
+  <label for="amount">送金したいトークン数:</label><br>
+  <input id="amount" type="number" step="0.0001" min="0" placeholder="例: 10"><br><br>
+  <input id="message" type="text" placeholder="メッセージ (任意)"><br><br>
+
+  <button onclick="sendToken()">MetaMaskで送金する</button>
+
+  <script>
+    const contractAddress = "0x001b215d0d7bca5B5F1fefFF431c2799B8656e08";
+    const tokenAddress = "0x3cc0e670d0abAEe99F881AbADa7ef9398Dcf3757";
+
+    const abi = [
+      "function tip(uint256 amount, string memory message) public",
+      "function owner() view returns (address)",
+      "function recipient() view returns (address)",
+      "function tokenAddress() view returns (address)"
+    ];
+
+    async function sendToken() {
+      try {
+        if (!window.ethereum) {
+          alert("MetaMaskが検出されませんでした。");
+          return;
+        }
+
+        await ethereum.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+
+        const amount = document.getElementById("amount").value;
+        const message = document.getElementById("message").value;
+
+        if (!amount || isNaN(amount) || amount <= 0) {
+          alert("有効なトークン数量を入力してください");
+          return;
+        }
+
+        const decimals = 18;
+        const parsedAmount = ethers.utils.parseUnits(amount, decimals);
+
+        const tx = await contract.tip(parsedAmount, message || "");
+        await tx.wait();
+
+        alert("送金が完了しました🎉");
+      } catch (err) {
+        console.error(err);
+        alert("送金に失敗しました: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
